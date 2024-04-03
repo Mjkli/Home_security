@@ -4,14 +4,14 @@ from bleak import BleakClient
 
 
 
-async def state(address):
+async def read_state(address: str) -> bool:
     async with BleakClient(address) as client:
         while client:
             out = await client.read_gatt_char(service)
             if out:
-                print("ERROR!")
+                return False
             else:
-                print("Fine!")
+                return True
             time.sleep(5)
 
 
