@@ -22,6 +22,7 @@ class Device:
         self.service = service
 
     def status(self) -> bool:
+        #self.state = async read_state(self.address)
         self.state = not self.state #swapping for debugging outside of pi 
         return self.state
 
@@ -30,14 +31,24 @@ def load_devices():
     #read json file and build object with device settings
     devs = []
 
-    with open('devices.json') as f:
+    with open('devices.json', 'r') as f:
         d = json.load(f)
-        for device in d:
-            dev = d[device] 
-            temp = Device(dev['name'],dev['address'],dev['service'])
-            devs.append(temp)
-        
+        devs = Device(d['name'],d['address'],d['service']) 
+    f.close()
+
     return devs
+
+def add_device(name:str, address:str, service:str):
+    device = {}
+    device['name'] = name
+    device['address'] = address
+    device['service'] = service
+    json_data = json.dumps(device, indent=4)
+
+    with open('devices.json','a') as f:
+        f.write(json_data)
+        
+    
 
 
 def print_stat(dev: Device):
@@ -46,10 +57,12 @@ def print_stat(dev: Device):
 
 def main():
     devices = load_devices()
-    while True:
-        for d in devices:
-            print_stat(d)
-        time.sleep(5)
+    print(devices)
+    add_device("switch_2","34:85","b7f5-ea07361b26a8")
+    # devices = load_devices()
+    # print(devices)
+
+    time.sleep(5)
 
 
 main()
