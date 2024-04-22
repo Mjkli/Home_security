@@ -3,16 +3,17 @@ import asyncio
 from bleak import BleakClient
 
 
-
-async def read_state(address: str) -> bool:
+async def connect_device(address: str, service: str):    
     async with BleakClient(address) as client:
-        while client:
-            out = await client.read_gatt_char(service)
-            if out:
-                return False
-            else:
-                return True
-            time.sleep(5)
+        await client.connect()
+        return client
+    return "error"
+
+
+
+async def read_state(client: BleakClient) -> bool:
+    return await client.read_gatt_char(service)
+
 
 
 

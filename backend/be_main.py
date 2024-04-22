@@ -1,4 +1,4 @@
-#from ble_client import read_state
+from ble_client import read_state, connect_device
 #import asyncio
 import json
 import time
@@ -14,18 +14,16 @@ class Device:
     name = ""
     address = ""
     service = ""
-    state = False
+    connection = null
 
-    def __init__(self,name:str, address:str, service:str):
+    async def __init__(self,name:str, address:str, service:str):
         self.name = name
         self.address = address
         self.service = service
+        self.connection = await connect_device(self.address, self.service) 
 
-    def status(self) -> bool:
-        #self.state = async read_state(self.address)
-        self.state = not self.state #swapping for debugging outside of pi 
-        return self.state
-
+    async def switch_status(self) -> bool:
+        return await read_state(self.connection)
 
 def load_devices():
     #read json file and build object with device settings
@@ -38,31 +36,29 @@ def load_devices():
 
     return devs
 
-def add_device(name:str, address:str, service:str):
-    device = {}
-    device['name'] = name
-    device['address'] = address
-    device['service'] = service
-    json_data = json.dumps(device, indent=4)
+# def add_device(name:str, address:str, service:str):
+#     device = {}
+#     device['name'] = name
+#     device['address'] = address
+#     device['service'] = service
+#     json_data = json.dumps(device, indent=4)
 
-    with open('devices.json','a') as f:
-        f.write(json_data)
-        
-    
+#     with open('devices.json','a') as f:
+#         f.write(json_data)
+            
 
 
-def print_stat(dev: Device):
-    print(dev.name + " " + str(dev.status()))
+async def print_stat(dev: Device):
+    print(dev.name + " " + str(await dev.switch_status()))
 
 
 def main():
-    devices = load_devices()
-    print(devices)
-    add_device("switch_2","34:85","b7f5-ea07361b26a8")
-    # devices = load_devices()
-    # print(devices)
-
-    time.sleep(5)
+    devices = []
+    devices.append(load_devices())
+    while True:
+        for d in devices:
+            print_stat(d)
+        time.sleep(5)
 
 
 main()
