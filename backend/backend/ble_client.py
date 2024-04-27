@@ -7,6 +7,7 @@ async def connect_device(address: str, service: str):
     async with BleakClient(address) as client:
         await client.connect()
         return client
+
     return "error"
 
 

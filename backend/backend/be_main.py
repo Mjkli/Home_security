@@ -1,5 +1,5 @@
 from ble_client import read_state, connect_device
-#import asyncio
+import asyncio
 import json
 import time
 
@@ -11,30 +11,41 @@ import time
 
 
 class Device:
-    name = ""
-    address = ""
-    service = ""
-    connection = null
-
-    async def __init__(self,name:str, address:str, service:str):
+    def __init__(self,name:str, address:str, service:str):
         self.name = name
         self.address = address
         self.service = service
-        self.connection = await connect_device(self.address, self.service) 
+        self.connection = None 
 
-    async def switch_status(self) -> bool:
-        return await read_state(self.connection)
+    async def connect(self):
+        self.connection = await connect_device(self.address,self.service)
+
+    def switch_status(self) -> bool:
+        return read_state(self.connection)
 
 def load_devices():
     #read json file and build object with device settings
     devs = []
 
     with open('devices.json', 'r') as f:
-        d = json.load(f)
-        devs = Device(d['name'],d['address'],d['service']) 
+        devices = json.load(f)
+        for d in devices:
+            temp = Device(devices[d].get("name"), 
+                                devices[d].get("address"),
+                                devices[d].get("service")
+                                )
+            devs.append(temp)
+
     f.close()
 
     return devs
+
+async def connect_devices(devices: []):
+    for d in devices:
+       await d.connect() 
+
+
+
 
 # def add_device(name:str, address:str, service:str):
 #     device = {}
@@ -49,16 +60,18 @@ def load_devices():
 
 
 async def print_stat(dev: Device):
-    print(dev.name + " " + str(await dev.switch_status()))
+   print(dev.connection) 
+    # print(dev.name + " " + str(con))
 
 
-def main():
+async def main():
     devices = []
-    devices.append(load_devices())
+    devices = load_devices()
+    await connect_devices(devices)
     while True:
         for d in devices:
-            print_stat(d)
+           await print_stat(d)
         time.sleep(5)
 
 
-main()
+asyncio.run(main())
